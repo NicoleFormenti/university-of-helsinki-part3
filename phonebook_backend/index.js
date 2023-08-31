@@ -7,9 +7,11 @@ app.use(morgan('tiny'))
 morgan.token('body', (req) => {
     return JSON.stringify(req.body)
   })
-  //step9: cross-origins requests
+  //step9-10: cross-origins requests
 const cors = require('cors')
 app.use(cors())
+//step11: adding the front-end
+app.use(express.static('dist'))
 let persons = [
     { 
       "id": 1,
@@ -99,8 +101,9 @@ app.get('/api/persons/:id', (req, res) => {
     res.json(person)
   })
 
-const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  const PORT = process.env.PORT || 3001
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+  })
+  
   

@@ -13,6 +13,20 @@ app.use(express.static('dist'))
 
 const Entry = require('./models/entry')
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } 
+
+  next(error)
+}
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
 let persons = []
 
 app.get('/api/persons', (request, response) => {
@@ -34,11 +48,13 @@ app.get('/api/persons/:id', (request, response) => {
   })
 })
 
-  app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id) 
-    persons = persons.filter(entry => entry.id !== id)
-    res.status(204).end()
-  })
+app.delete('/api/persons/:id', (request, response, next) => {
+  Entry.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end() 
+    })
+    .catch(error => next(error))
+})
 
   app.post('/api/persons', (request, response) => {
     const body = request.body
@@ -59,6 +75,8 @@ app.get('/api/persons/:id', (request, response) => {
     })
   })
     
+  app.use(unknownEndpoint)
+  app.use(errorHandler)
 
   const PORT = process.env.PORT
   app.listen(PORT, () => {
